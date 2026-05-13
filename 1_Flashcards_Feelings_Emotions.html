@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcards – Feelings & Emotions | Watlahan School Grade 3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f8ff; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #1A7A8A, #2E86AB);
+    color: white; text-align: center; padding: 24px 16px 16px;
+  }
+  header h1 { font-size: 1.6rem; letter-spacing: 1px; }
+  header p  { font-size: 0.85rem; opacity: .8; margin-top: 4px; }
+
+  /* Mode buttons */
+  .mode-bar {
+    display: flex; justify-content: center; gap: 10px;
+    padding: 16px; background: #fff; border-bottom: 2px solid #e0f4f7;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    padding: 8px 20px; border-radius: 20px; border: 2px solid #1A7A8A;
+    background: white; color: #1A7A8A; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .mode-btn.active, .mode-btn:hover { background: #1A7A8A; color: white; }
+
+  /* ── GRID MODE ── */
+  #grid-mode { padding: 24px 16px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px; max-width: 900px; margin: 0 auto;
+  }
+  .card {
+    border-radius: 16px; padding: 28px 16px 20px;
+    text-align: center; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    transition: transform .2s, box-shadow .2s;
+    color: white; user-select: none;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  .card .emoji { font-size: 3rem; display: block; margin-bottom: 10px; }
+  .card .word  { font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; }
+  .card .sent  { font-size: 0.78rem; margin-top: 8px; opacity: .9; line-height: 1.4; }
+
+  /* ── FLIP MODE ── */
+  #flip-mode {
+    display: none; flex-direction: column; align-items: center;
+    padding: 24px 16px; min-height: 60vh; justify-content: center;
+  }
+  .flip-wrap { perspective: 800px; width: 300px; height: 240px; cursor: pointer; }
+  .flip-inner {
+    width: 100%; height: 100%; position: relative;
+    transform-style: preserve-3d; transition: transform .5s;
+    border-radius: 20px;
+  }
+  .flip-wrap.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-front, .flip-back {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; border-radius: 20px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px; box-shadow: 0 6px 24px rgba(0,0,0,.18);
+  }
+  .flip-front { background: white; border: 3px solid #1A7A8A; }
+  .flip-front .big-emoji { font-size: 5rem; }
+  .flip-front .hint { font-size: 0.8rem; color: #999; margin-top: 12px; }
+  .flip-back { color: white; transform: rotateY(180deg); }
+  .flip-back .back-word { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+  .flip-back .back-sent { font-size: 0.85rem; text-align: center; line-height: 1.5; }
+
+  .flip-nav { display: flex; gap: 16px; margin-top: 24px; align-items: center; }
+  .nav-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: none; background: #1A7A8A; color: white;
+    font-size: 1.2rem; cursor: pointer; transition: background .2s;
+  }
+  .nav-btn:hover { background: #155f6d; }
+  .flip-counter { font-size: 1rem; color: #555; font-weight: 600; min-width: 60px; text-align: center; }
+
+  /* ── QUIZ MODE ── */
+  #quiz-mode { display: none; flex-direction: column; align-items: center; padding: 24px 16px; }
+  .quiz-question { font-size: 5rem; margin-bottom: 20px; }
+  .quiz-options {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    width: 100%; max-width: 400px;
+  }
+  .quiz-opt {
+    padding: 14px; border-radius: 12px; border: 2px solid #ddd;
+    background: white; font-size: 1.1rem; font-weight: 600;
+    cursor: pointer; transition: all .2s; text-align: center;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: #1A7A8A; background: #e0f4f7; }
+  .quiz-opt.correct { background: #e8f5e9; border-color: #2E7D32; color: #2E7D32; }
+  .quiz-opt.wrong   { background: #fdeaea; border-color: #E84855; color: #E84855; }
+  .quiz-score { margin-top: 16px; font-size: 1rem; color: #555; font-weight: 600; }
+  .quiz-next {
+    margin-top: 16px; padding: 10px 28px; border-radius: 20px;
+    border: none; background: #1A7A8A; color: white; font-size: 1rem;
+    cursor: pointer; display: none;
+  }
+  .quiz-next.show { display: inline-block; }
+
+  footer {
+    text-align: center; padding: 16px; font-size: 0.78rem;
+    color: #aaa; border-top: 1px solid #e0e0e0; margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎭 Feelings &amp; Emotions Flashcards</h1>
+  <p>Watlahan School &nbsp;|&nbsp; Grade 3 English &nbsp;|&nbsp; Active Learning</p>
+</header>
+
+<div class="mode-bar">
+  <button class="mode-btn active" onclick="showMode('grid')">📋 All Cards</button>
+  <button class="mode-btn" onclick="showMode('flip')">🔄 Flip Cards</button>
+  <button class="mode-btn" onclick="showMode('quiz')">🎯 Quiz Me!</button>
+</div>
+
+<!-- GRID -->
+<div id="grid-mode">
+  <div class="grid" id="card-grid"></div>
+</div>
+
+<!-- FLIP -->
+<div id="flip-mode">
+  <div class="flip-wrap" id="flip-wrap" onclick="flipCard()">
+    <div class="flip-inner" id="flip-inner">
+      <div class="flip-front">
+        <div class="big-emoji" id="flip-emoji"></div>
+        <div class="hint">Click to reveal!</div>
+      </div>
+      <div class="flip-back" id="flip-back">
+        <div class="back-word" id="flip-word"></div>
+        <div class="back-sent" id="flip-sent"></div>
+      </div>
+    </div>
+  </div>
+  <div class="flip-nav">
+    <button class="nav-btn" onclick="prevCard()">‹</button>
+    <div class="flip-counter" id="flip-counter">1 / 8</div>
+    <button class="nav-btn" onclick="nextCard()">›</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz-mode">
+  <div class="quiz-question" id="quiz-emoji"></div>
+  <div class="quiz-options" id="quiz-options"></div>
+  <div class="quiz-score" id="quiz-score">Score: 0 / 0</div>
+  <button class="quiz-next" id="quiz-next" onclick="nextQuiz()">Next ›</button>
+</div>
+
+<footer>Watlahan School &nbsp;|&nbsp; Grade 3 English: Feelings &amp; Emotions &nbsp;|&nbsp; Active Learning Materials</footer>
+
+<script>
+const EMOTIONS = [
+  { emoji:'😊', word:'HAPPY',     sent:'I feel happy today!',          color:'#FF7043' },
+  { emoji:'😢', word:'SAD',       sent:'I feel sad sometimes.',         color:'#1E88E5' },
+  { emoji:'😠', word:'ANGRY',     sent:'I feel angry right now.',       color:'#E53935' },
+  { emoji:'😨', word:'SCARED',    sent:'I feel scared of thunder.',     color:'#8E24AA' },
+  { emoji:'😲', word:'SURPRISED', sent:'I am surprised!',               color:'#00897B' },
+  { emoji:'😴', word:'TIRED',     sent:'I feel tired after PE.',        color:'#6D4C41' },
+  { emoji:'🤩', word:'EXCITED',   sent:'I am excited for the trip!',   color:'#F4511E' },
+  { emoji:'😒', word:'BORED',     sent:'I feel bored in class.',        color:'#546E7A' },
+];
+
+// ── Grid ──────────────────────────────────────────────────────────────────────
+const grid = document.getElementById('card-grid');
+EMOTIONS.forEach(e => {
+  grid.innerHTML += `
+    <div class="card" style="background:${e.color}" onclick="this.classList.toggle('flipped')">
+      <span class="emoji">${e.emoji}</span>
+      <div class="word">${e.word}</div>
+      <div class="sent">${e.sent}</div>
+    </div>`;
+});
+
+// ── Flip ──────────────────────────────────────────────────────────────────────
+let flipIdx = 0;
+function loadFlip(i) {
+  const e = EMOTIONS[i];
+  document.getElementById('flip-emoji').textContent = e.emoji;
+  document.getElementById('flip-word').textContent  = e.word;
+  document.getElementById('flip-sent').textContent  = e.sent;
+  document.getElementById('flip-back').style.background = e.color;
+  document.getElementById('flip-counter').textContent = `${i+1} / ${EMOTIONS.length}`;
+  document.getElementById('flip-wrap').classList.remove('flipped');
+}
+function flipCard() { document.getElementById('flip-wrap').classList.toggle('flipped'); }
+function nextCard() { flipIdx = (flipIdx+1) % EMOTIONS.length; loadFlip(flipIdx); }
+function prevCard() { flipIdx = (flipIdx-1+EMOTIONS.length) % EMOTIONS.length; loadFlip(flipIdx); }
+loadFlip(0);
+
+// ── Quiz ──────────────────────────────────────────────────────────────────────
+let quizScore = 0, quizTotal = 0, quizAnswered = false, quizCurrent = 0;
+function shuffle(a) { return [...a].sort(()=>Math.random()-.5); }
+function loadQuiz() {
+  quizAnswered = false;
+  quizCurrent = Math.floor(Math.random()*EMOTIONS.length);
+  const correct = EMOTIONS[quizCurrent];
+  document.getElementById('quiz-emoji').textContent = correct.emoji;
+  document.getElementById('quiz-next').classList.remove('show');
+
+  const others = EMOTIONS.filter((_,i)=>i!==quizCurrent);
+  const choices = shuffle([correct, ...shuffle(others).slice(0,3)]);
+  const opts = document.getElementById('quiz-options');
+  opts.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = c.word;
+    btn.onclick = () => checkAnswer(btn, c.word, correct.word);
+    opts.appendChild(btn);
+  });
+}
+function checkAnswer(btn, chosen, correct) {
+  if (quizAnswered) return;
+  quizAnswered = true; quizTotal++;
+  if (chosen === correct) { btn.classList.add('correct'); quizScore++; }
+  else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.quiz-opt').forEach(b => {
+      if (b.textContent===correct) b.classList.add('correct');
+    });
+  }
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  document.getElementById('quiz-score').textContent = `Score: ${quizScore} / ${quizTotal}`;
+  document.getElementById('quiz-next').classList.add('show');
+}
+function nextQuiz() { loadQuiz(); }
+
+// ── Mode switcher ──────────────────────────────────────────────────────────────
+function showMode(m) {
+  document.getElementById('grid-mode').style.display = m==='grid' ? 'block' : 'none';
+  document.getElementById('flip-mode').style.display = m==='flip' ? 'flex'  : 'none';
+  document.getElementById('quiz-mode').style.display = m==='quiz' ? 'flex'  : 'none';
+  document.querySelectorAll('.mode-btn').forEach((b,i)=>
+    b.classList.toggle('active', ['grid','flip','quiz'][i]===m));
+  if (m==='quiz') loadQuiz();
+}
+</script>
+</body>
+</html>
